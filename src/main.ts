@@ -6,12 +6,12 @@ import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  
+
   // Activer CORS pour permettre les requêtes du frontend
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', ''],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
   });
 
   // NOUVEAU : Augmenter la limite de taille des requêtes pour les images
@@ -23,7 +23,7 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  await app.listen(3000);
+  await app.listen(process.env.PORT || 3000);
   console.log('Server started on http://localhost:3000');
 }
 bootstrap();
