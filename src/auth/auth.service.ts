@@ -1,12 +1,13 @@
 import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { UserRole } from '../users/users.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   constructor(private usersService: UsersService) {}
 
-  async register(registerDto: { email: string; password: string; firstName?: string; lastName?: string }) {
+  async register(registerDto: { email: string; password: string; firstName?: string; lastName?: string; role?: UserRole }) {
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await this.usersService.findByEmail(registerDto.email);
     if (existingUser) {
@@ -21,6 +22,7 @@ export class AuthService {
     const user = await this.usersService.create({
       ...registerDto,
       password: hashedPassword,
+      role: registerDto.role || UserRole.USER,
     });
 
     // Retourner l'utilisateur sans le mot de passe
