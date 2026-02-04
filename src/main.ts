@@ -9,8 +9,23 @@ async function bootstrap() {
 
   // Activer CORS pour permettre les requêtes du frontend
   app.enableCors({
-    origin: ['http://localhost:5173', 'https://ecommerce-front-uqsm.vercel.app'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    origin: [
+      'http://localhost:5173', // Vite
+      'http://localhost:5174', // Vite (port alternatif)
+      'http://localhost:5175', // Vite (port alternatif)
+      'http://localhost:3001', // React
+      'http://localhost:3000', // Next.js
+      'http://localhost:8080', // Vu
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:5174',
+      'http://127.0.0.1:5175',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:8080',
+      'https://ecommerce-front-uqsm.vercel.app'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
