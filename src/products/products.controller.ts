@@ -17,8 +17,10 @@ export class ProductsController {
         imageSize: productData.imageUrl ? `${(productData.imageUrl.length / 1024).toFixed(1)} KB` : '0 KB'
       });
 
-      // Plus besoin de traitement - on stocke directement le base64
-      return this.productsService.create(productData);
+      // Retirer userEmail des données (utilisé uniquement pour l'authentification)
+      const { userEmail, ...dataToCreate } = productData as any;
+
+      return this.productsService.create(dataToCreate);
     } catch (error) {
       console.error('Erreur création produit:', error);
       throw error;
@@ -48,14 +50,45 @@ export class ProductsController {
       console.log('Mise à jour produit, données reçues:', {
         id: id,
         name: productData.name,
+        price: productData.price,
+        priceType: typeof productData.price,
+        stock: productData.stock,
+        categoryId: productData.categoryId,
         hasImage: !!productData.imageUrl,
         imageSize: productData.imageUrl ? `${(productData.imageUrl.length / 1024).toFixed(1)} KB` : '0 KB'
       });
 
-      // Plus besoin de traitement - on stocke directement le base64
-      return this.productsService.update(id, productData);
+      // Retirer userEmail des données (utilisé uniquement pour l'authentification)
+      const { userEmail, ...dataToUpdate } = productData as any;
+
+      // Valider et convertir le prix si nécessaire
+      if (dataToUpdate.price !== undefined) {
+        const price = typeof dataToUpdate.price === 'string' 
+          ? parseFloat(dataToUpdate.price) 
+          : dataToUpdate.price;
+        
+        if (isNaN(price)) {
+          throw new Error('Prix invalide');
+        }
+        dataToUpdate.price = price;
+      }
+
+      // Valider et convertir le stock si nécessaire
+      if (dataToUpdate.stock !== undefined) {
+        const stock = typeof dataToUpdate.stock === 'string' 
+          ? parseInt(dataToUpdate.stock) 
+          : dataToUpdate.stock;
+        
+        if (isNaN(stock)) {
+          throw new Error('Stock invalide');
+        }
+        dataToUpdate.stock = stock;
+      }
+
+      return this.productsService.update(id, dataToUpdate);
     } catch (error) {
       console.error('Erreur mise à jour produit:', error);
+      console.error('Stack trace:', error.stack);
       throw error;
     }
   }

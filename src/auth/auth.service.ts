@@ -1,11 +1,15 @@
 import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../users/users.entity';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
   async register(registerDto: { email: string; password: string; firstName?: string; lastName?: string; role?: UserRole }) {
     // Vérifier si l'utilisateur existe déjà
@@ -25,11 +29,16 @@ export class AuthService {
       role: registerDto.role || UserRole.USER,
     });
 
-    // Retourner l'utilisateur sans le mot de passe
+    // Générer le token JWT
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const token = this.jwtService.sign(payload);
+
+    // Retourner l'utilisateur sans le mot de passe + token
     const { password, ...result } = user;
     return {
       message: 'User registered successfully',
       user: result,
+      access_token: token,
     };
   }
 
@@ -46,11 +55,16 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Retourner l'utilisateur sans le mot de passe
+    // Générer le token JWT
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const token = this.jwtService.sign(payload);
+
+    // Retourner l'utilisateur sans le mot de passe + token
     const { password, ...result } = user;
     return {
       message: 'Login successful',
       user: result,
+      access_token: token,
     };
   }
 }

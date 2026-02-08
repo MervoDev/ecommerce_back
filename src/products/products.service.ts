@@ -4,19 +4,20 @@ import { Repository, Like } from 'typeorm';
 import { Product } from './products.entity';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CreateProductDto } from './create-product.dto';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productsRepository: Repository<Product>,
-  ) {}
+  ) { }
 
-  // MÉTHODE CORRIGÉE pour gérer les images base64
+  // Méthode pour gérer les images base64
   async saveBase64Image(base64String: string): Promise<string> {
     try {
       console.log('Début sauvegarde image base64...');
-      
+
       // Extraire le type d'image et les données
       const matches = base64String.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
       if (!matches) {
@@ -24,15 +25,15 @@ export class ProductsService {
         throw new Error('Format base64 invalide');
       }
 
-      const imageType = matches[1].toLowerCase(); // jpg, png, etc.
+      const imageType = matches[1].toLowerCase(); 
       const imageData = matches[2];
 
       console.log(`Type d'image détecté: ${imageType}`);
 
-      // Créer le dossier uploads s'il n'existe pas
+      
       const uploadsDir = path.join(process.cwd(), 'uploads');
       console.log(`Dossier uploads: ${uploadsDir}`);
-      
+
       if (!fs.existsSync(uploadsDir)) {
         console.log('Création du dossier uploads...');
         fs.mkdirSync(uploadsDir, { recursive: true });
@@ -41,12 +42,12 @@ export class ProductsService {
       // Générer un nom de fichier unique
       const fileName = `product_${Date.now()}_${Math.random().toString(36).substring(7)}.${imageType}`;
       const filePath = path.join(uploadsDir, fileName);
-      
+
       console.log(`Sauvegarde vers: ${filePath}`);
 
       // Sauvegarder le fichier
       fs.writeFileSync(filePath, imageData, 'base64');
-      
+
       console.log('Image sauvegardée avec succès !');
 
       // Retourner l'URL relative
@@ -58,10 +59,20 @@ export class ProductsService {
     }
   }
 
-  async create(productData: Partial<Product>): Promise<Product> {
-    const product = this.productsRepository.create(productData);
+  async create(dto: CreateProductDto): Promise<Product> {
+    const product = this.productsRepository.create({
+      name: dto.name,
+      description: dto.description,
+      price: dto.price,
+      stock: dto.stock,
+      imageUrl: dto.imageUrl,
+      isActive: dto.isActive ?? true,
+      categoryId: dto.categoryId, 
+    });
+
     return this.productsRepository.save(product);
   }
+
 
   async findAll(categoryId?: number, search?: string): Promise<Product[]> {
     const query = this.productsRepository.createQueryBuilder('product')
